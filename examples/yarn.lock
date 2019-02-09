@@ -12,9 +12,10 @@ buffer-from@^1.0.0:
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
   integrity sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
 
-"camdo@https://github.com/Brecert/camdo":
-  version "0.0.1"
-  resolved "https://github.com/Brecert/camdo#7ff93edce254ef88e4c8a8367f0f0358bcdb05bf"
+camdo@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/camdo/-/camdo-0.1.0.tgz#dd36d6243e1d19b4819cd8629e8eb71097cd0c33"
+  integrity sha512-o5dTMFx5vtW4YtHG0NRIGCaXZMtqKuLVweuYobAZ1556H05Wp3bjEgFdXrHsYsZ8/xx/i73O+TIRkQ++dgHbRQ==
 
 diff@^3.1.0:
   version "3.5.0"
