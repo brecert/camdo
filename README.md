@@ -21,7 +21,7 @@ Camdo can be used by
 3. setting how the data is sent
     ```js
     client.send = (data) => {
-      console.log(data.title, data.description)
+      console.log(data)
     }
     ```    
 4. defining commands
@@ -44,4 +44,8 @@ Camdo can be used by
         }
       }
     })
+    ```
+5. now when `runCommand` is run it will echo the args
+    ```js
+    runCommand('echo', ['hello', 'world'])
     ```
