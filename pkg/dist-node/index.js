@@ -121,12 +121,12 @@ class CommandClient {
       function () {
         var _ref = _asyncToGenerator(function* (params) {
           let input_args = params;
-          let validated = cmd.args.every((arg, i, arr) => {
+          let validated = cmd.args.every((arg, i) => {
             arg = _this.defineArg(arg);
             let input_arg = input_args[arg.id] || arg.default_value;
 
             if (arg.capture) {
-              input_arg = arr.slice(i);
+              input_arg = input_args.slice(i);
             }
 
             input_args[arg.id] = input_arg;
@@ -142,8 +142,7 @@ class CommandClient {
 
           if (validated) {
             const data = yield cmd.run(input_args);
-
-            _this.responseTemplate(data);
+            return _this.responseTemplate(data);
           }
         });
 
@@ -170,7 +169,7 @@ class CommandClient {
   definitionTemplate(cmd, cb = args => args) {}
 
   responseTemplate(data) {
-    this.send(data);
+    return this.send(data);
   }
 
 }
