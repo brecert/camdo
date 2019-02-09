@@ -91,12 +91,12 @@ export class CommandClient {
     this.definitionTemplate(cmd, async (params) => {
       
       let input_args = params
-      let validated = cmd.args.every((arg, i, arr) => {
+      let validated = cmd.args.every((arg, i) => {
         arg = this.defineArg(arg)
         
         let input_arg = input_args[arg.id] || arg.default_value
         if(arg.capture) {
-          input_arg = arr.slice(i)
+          input_arg = input_args.slice(i)
         }
 
         input_args[arg.id] = input_arg
@@ -112,7 +112,7 @@ export class CommandClient {
 
       if (validated) {
         const data = await cmd.run(input_args)
-        this.responseTemplate(data)
+        return this.responseTemplate(data)
       }
     })
   }
@@ -129,9 +129,9 @@ export class CommandClient {
   send(data){
     console.log(data)
   }
-  
+
   definitionTemplate(cmd, cb = (args) => args) {}
   responseTemplate(data) {
-    this.send(data)
+    return this.send(data)
   }
 }

@@ -10,10 +10,6 @@ test('Command Client', () => {
 
   const client = new CommandClient()
 
-  client.send = (data) => {
-    return data
-  }
-
   client.definitionTemplate = (cmd, cb) => {
     runCommand = (command, args) => {
       if(cmd.id === command) {
@@ -41,6 +37,10 @@ test('Command Client', () => {
     }
   })
 
-  expect(runCommand('echo', ['hello', 'world'])).toEq('hello world')
+  client.send = (data) => {
+    expect(data.description).toEq('hello world')
+  }
+
+  runCommand('echo', ['hello', 'world'])
 })
 
