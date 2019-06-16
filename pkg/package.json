@@ -1,7 +1,7 @@
 {
   "name": "camdo",
   "description": "Knockoff general use commando",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "files": [
     "dist-*/",
@@ -21,6 +21,7 @@
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
     "sylvent": "^0.4.0",
+    "ts-mocha": "^6.0.0",
     "ts-node": "^8.3.0",
     "typescript": "^3.5.2"
   },
