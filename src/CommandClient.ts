@@ -143,7 +143,7 @@ export default class CommandClient {
           })
 
           const data = cmd.run(retArgs)
-          handler.send(data)
+          handler.send(data, ...passedData)
         }
       }, cmd)
     })
