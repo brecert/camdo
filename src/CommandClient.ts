@@ -1,4 +1,4 @@
-interface ICamdoFormat {
+export interface ICamdoFormat {
   name?: string
   title?: string
   description?: string
@@ -7,131 +7,154 @@ interface ICamdoFormat {
   format?: "default" | "large_image"
 }
 
-interface ICamdoCommand {
+export interface ICamdoCommandParams {
   id: string
   name?: string
   description?: string
-  examples?: string[]
-  args: ICamdoArgument[]
+  args: ICamdoArgumentParams[]
 
-  run(args): ICamdoFormat
+  run(args: any[]): ICamdoFormat
 }
 
-interface ICamdoArgument {
+export interface ICamdoCommand {
+  id: string
+  name: string
+  description: string
+  args: ICamdoArgument[]
+
+  run(args: any[]): ICamdoFormat
+}
+
+export interface ICamdoArgumentParams {
   id: string
   name?: string
   description?: string
   type?: string
-  default_value?
+  default_value?: any
   capture?: boolean
   fail_message?: string
   required?: boolean
 }
 
-interface ICamdoType {
+export interface ICamdoArgument {
+  id: string
+  name: string
+  description: string
+  type: string
+  default_value?: any
+  capture: boolean
+  fail_message?: string
+  required: boolean
+}
+
+
+export interface ICamdoHandler{
+  id: string
+  event: (resolve: (args: string[], ...passedData: any[]) => void | any, cmd: ICamdoCommand) => void | any
+  send: (data: ICamdoFormat, ...passedData: any[]) => void | any
+}
+
+export interface ICamdoType {
+  id: string
+  display: string
+  validate: (arg: string) => boolean 
+}
+
+export interface ICamdoTypeParams {
   id: string
   display?: string
-  validate?: <T>(arg: T) => boolean 
+  validate?: (arg: string) => boolean 
 }
 
-interface ICommandList {
-  [key: string]: ICamdoCommand
-}
-
-interface ITypeList {
-  [key: string]: ICamdoType
-}
-
-export class CommandClient {
-  commands: ICommandList
-  types: ITypeList
+export default class CommandClient {
+  commands: Map<string, ICamdoCommand> = new Map
+  types: Map<string, ICamdoType> = new Map
+  handlers: Map<string, ICamdoHandler> = new Map
 
   constructor() {
-    this.commands = {};
-    this.types = {
-      any: {
-        id: "any",
-        display: "anything",
-        validate: val => true
-      }
-    };
-  }
-
-  defineType(opts: ICamdoType) {
-    const defaults = {
-      display: undefined,
+    this.types.set('any', {
+      id: 'any',
+      display: 'anything',
       validate: val => true
-    }
-    this.types[opts.id] = {...defaults, ...opts};
+    })
   }
 
-  defineArg(arg: ICamdoArgument): ICamdoArgument {
-    const defaults = {
+  defineType(opts: ICamdoTypeParams) {
+    const defaults: ICamdoType = {
+      id: opts.id,
+      display: opts.id,
+      validate: (val: any) => true
+    }
+
+    this.types.set(opts.id, {...defaults, ...opts})
+  }
+
+  defineArg(arg: ICamdoArgumentParams): ICamdoArgument {
+    const defaults: ICamdoArgument = {
+      id: arg.id,
       name: arg.id,
-      desc: arg.id,
+      description: arg.id,
       type: "any",
       capture: false,
       required: true
     }
-    
+
     return {...defaults, ...arg}
   }
   
-  async defineCommand(cmd: ICamdoCommand) {
-    const defaults = {
-      examples: ['none'],
-      name: cmd.id,
-      desc: cmd.id,
+  defineCommand(cmd: ICamdoCommandParams) {
+    const defaults: ICamdoCommand = {
+      ...cmd,
+      name: cmd.name || cmd.id,
+      description: cmd.description || cmd.name || cmd.id,
+      args: (cmd.args || []).map(this.defineArg)
     }
-    cmd = {...defaults, ...cmd}
-    this.commands[cmd.id] = cmd
+    this.commands.set(defaults.id, defaults)
+  }
 
-    // define_template
-    // setSendTemplate(args)
-    this.definitionTemplate(cmd, async (params) => {
-      
-      let input_args = params
-      let validated = cmd.args.every((arg, i) => {
-        arg = this.defineArg(arg)
-        
-        let input_arg = input_args[arg.id] || arg.default_value
-        if(arg.capture) {
-          input_arg = input_args.slice(i)
-        }
+  validateArgs(args: string[], cmd: ICamdoCommand, handler: ICamdoHandler): boolean {
+    return cmd.args.every((cmdArg, i) => {
+      let arg = args[i] || cmdArg.default_value
 
-        input_args[arg.id] = input_arg
-        
-        let v = this.types[arg.type].validate(input_arg)
-        
-        if (!v) {
-          this.failedMessage(arg, input_arg)
-        }
-
-        return v;
-      });
-
-      if (validated) {
-        const data = await cmd.run(input_args)
-        return this.responseTemplate(data)
+      if(!this.types.has(cmdArg.type)) {
+        throw `${cmdArg.type} on ${cmdArg.id} is not currently registered`
       }
+
+      let validated = this.types.get(cmdArg.type)!.validate(arg)
+      if(!validated && cmdArg.required) {
+        handler.send(this.failedMessage(cmdArg, arg))
+      }
+
+      return validated
     })
-  }
-  
-  failedMessage(arg, failed_arg) {
-    this.send({
-      name: "ERROR",
-      title: `Expected type "${arg.type}" at argument "${arg.id}" not "${failed_arg}"`,
-      description: arg.fail_message || `Please use the help command to see what "${arg.id}" accepts.`,
-      color: 0xdd3344
-    })
-  }
-  
-  send(data){
-    console.log(data)
   }
 
-  definitionTemplate(cmd, cb = (args) => args) {}
-  responseTemplate(data) {
-    return this.send(data)
+
+  addHandler(params: ICamdoHandler) {
+    this.handlers.set(params.id, params)
+    let handler = this.handlers.get(params.id)!
+
+    this.commands.forEach(cmd => {
+      handler.event((args, ...passedData) => {
+        if (this.validateArgs(args, cmd, handler)) {
+          let retArgs = cmd.args.map((cmdArg, i) => { 
+            let arg = args[i] || cmdArg.default_value
+            if (cmdArg.capture) return arg
+          })
+
+          const data = cmd.run(retArgs)
+          handler.send(data)
+        }
+      }, cmd)
+    })
+  }
+  
+  failedMessage(cmdArg: ICamdoArgument, failedArg: string) {
+    return {
+      name: "ERROR",
+      title: `Expected type "${cmdArg.type}" at argument "${cmdArg.id}" not "${failedArg}"`,
+      description: cmdArg.fail_message || `argument "${cmdArg.id}" does not accept \`${failedArg}\`.`,
+      color: 0xdd3344
+    }
   }
 }

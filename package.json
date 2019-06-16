@@ -2,26 +2,37 @@
   "name": "camdo",
   "version": "0.1.0",
   "description": "Knockoff general use commando",
-  "@pika/pack": {
-    "pipeline": [
-      [
-        "@pika/plugin-standard-pkg",
-        {
-          "exclude": [
-            "__tests__/*"
-          ]
-        }
-      ],
-      [
-        "@pika/plugin-build-node"
-      ]
-    ]
-  },
   "repository": "https://github.com/Brecert/camdo.git",
   "author": "Brecert",
   "license": "MIT",
+  "@pika/pack": {
+    "pipeline": [
+      [
+        "@pika/plugin-standard-pkg"
+      ],
+      [
+        "@pika/plugin-build-node"
+      ],
+      [
+        "@pika/plugin-build-types"
+      ]
+    ]
+  },
+  "scripts": {
+    "build": "pack build",
+    "test": "mocha --require ts-node/register test/**/*.spec.ts"
+  },
   "devDependencies": {
-    "@pika/plugin-build-node": "^0.3.9",
-    "@pika/plugin-standard-pkg": "^0.3.9"
+    "@pika/pack": "^0.4.0",
+    "@pika/plugin-build-node": "^0.4.0",
+    "@pika/plugin-build-types": "^0.4.0",
+    "@pika/plugin-standard-pkg": "^0.4.0",
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.7",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "sylvent": "^0.4.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.2"
   }
 }

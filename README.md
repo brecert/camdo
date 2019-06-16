@@ -8,7 +8,7 @@ Camdo can be used by
     ```js
     const client = new CommandClient();
     ```
-2. setting the defininition template for whenever a command is run
+2. adding a handler 
     ```js
     client.definitionTemplate = (cmd, cb) => {
       runCommand = (command, args) => {

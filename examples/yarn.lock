@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@types/node@^12.0.8":
+  version "12.0.8"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.8.tgz#551466be11b2adc3f3d47156758f610bd9f6b1d8"
+  integrity sha512-b8bbUOTwzIY3V5vDTY1fIJ+ePKDUBqt2hC2woVGotdQQhG/2Sh62HOKHrT7ab+VerXAcPyAiTEipPu/FsreUtg==
+
 arg@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/arg/-/arg-4.1.0.tgz#583c518199419e0037abb74062c37f8519e575f0"
@@ -11,11 +16,6 @@ buffer-from@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
   integrity sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
-
-camdo@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/camdo/-/camdo-0.1.0.tgz#dd36d6243e1d19b4819cd8629e8eb71097cd0c33"
-  integrity sha512-o5dTMFx5vtW4YtHG0NRIGCaXZMtqKuLVweuYobAZ1556H05Wp3bjEgFdXrHsYsZ8/xx/i73O+TIRkQ++dgHbRQ==
 
 diff@^3.1.0:
   version "3.5.0"
