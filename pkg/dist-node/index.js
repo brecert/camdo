@@ -2,42 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
-  try {
-    var info = gen[key](arg);
-    var value = info.value;
-  } catch (error) {
-    reject(error);
-    return;
-  }
-
-  if (info.done) {
-    resolve(value);
-  } else {
-    Promise.resolve(value).then(_next, _throw);
-  }
-}
-
-function _asyncToGenerator(fn) {
-  return function () {
-    var self = this,
-        args = arguments;
-    return new Promise(function (resolve, reject) {
-      var gen = fn.apply(self, args);
-
-      function _next(value) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
-      }
-
-      function _throw(err) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
-      }
-
-      _next(undefined);
-    });
-  };
-}
-
 function _defineProperty(obj, key, value) {
   if (key in obj) {
     Object.defineProperty(obj, key, {
@@ -72,30 +36,50 @@ function _objectSpread(target) {
   return target;
 }
 
+function _defineProperty$1(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
 class CommandClient {
   constructor() {
-    this.commands = {};
-    this.types = {
-      any: {
-        id: "any",
-        display: "anything",
-        validate: val => true
-      }
-    };
+    _defineProperty$1(this, "commands", new Map());
+
+    _defineProperty$1(this, "types", new Map());
+
+    _defineProperty$1(this, "handlers", new Map());
+
+    this.types.set('any', {
+      id: 'any',
+      display: 'anything',
+      validate: val => true
+    });
   }
 
   defineType(opts) {
     const defaults = {
-      display: undefined,
+      id: opts.id,
+      display: opts.id,
       validate: val => true
     };
-    this.types[opts.id] = _objectSpread({}, defaults, opts);
+    this.types.set(opts.id, _objectSpread({}, defaults, opts));
   }
 
   defineArg(arg) {
     const defaults = {
+      id: arg.id,
       name: arg.id,
-      desc: arg.id,
+      description: arg.id,
       type: "any",
       capture: false,
       required: true
@@ -104,74 +88,59 @@ class CommandClient {
   }
 
   defineCommand(cmd) {
-    var _this = this;
+    const defaults = _objectSpread({}, cmd, {
+      name: cmd.name || cmd.id,
+      description: cmd.description || cmd.name || cmd.id,
+      args: (cmd.args || []).map(this.defineArg)
+    });
 
-    return _asyncToGenerator(function* () {
-      const defaults = {
-        examples: ['none'],
-        name: cmd.id,
-        desc: cmd.id
-      };
-      cmd = _objectSpread({}, defaults, cmd);
-      _this.commands[cmd.id] = cmd; // define_template
-      // setSendTemplate(args)
-
-      _this.definitionTemplate(cmd,
-      /*#__PURE__*/
-      function () {
-        var _ref = _asyncToGenerator(function* (params) {
-          let input_args = params;
-          let validated = cmd.args.every((arg, i) => {
-            arg = _this.defineArg(arg);
-            let input_arg = input_args[arg.id] || arg.default_value;
-
-            if (arg.capture) {
-              input_arg = input_args.slice(i);
-            }
-
-            input_args[arg.id] = input_arg;
-
-            let v = _this.types[arg.type].validate(input_arg);
-
-            if (!v) {
-              _this.failedMessage(arg, input_arg);
-            }
-
-            return v;
-          });
-
-          if (validated) {
-            const data = yield cmd.run(input_args);
-            return _this.responseTemplate(data);
-          }
-        });
-
-        return function (_x) {
-          return _ref.apply(this, arguments);
-        };
-      }());
-    })();
+    this.commands.set(defaults.id, defaults);
   }
 
-  failedMessage(arg, failed_arg) {
-    this.send({
-      name: "ERROR",
-      title: `Expected type "${arg.type}" at argument "${arg.id}" not "${failed_arg}"`,
-      description: arg.fail_message || `Please use the help command to see what "${arg.id}" accepts.`,
-      color: 0xdd3344
+  validateArgs(args, cmd, handler) {
+    return cmd.args.every((cmdArg, i) => {
+      let arg = args[i] || cmdArg.default_value;
+
+      if (!this.types.has(cmdArg.type)) {
+        throw `${cmdArg.type} on ${cmdArg.id} is not currently registered`;
+      }
+
+      let validated = this.types.get(cmdArg.type).validate(arg);
+
+      if (!validated && cmdArg.required) {
+        handler.send(this.failedMessage(cmdArg, arg));
+      }
+
+      return validated;
     });
   }
 
-  send(data) {
-    console.log(data);
+  addHandler(params) {
+    this.handlers.set(params.id, params);
+    let handler = this.handlers.get(params.id);
+    this.commands.forEach(cmd => {
+      handler.event((args, ...passedData) => {
+        if (this.validateArgs(args, cmd, handler)) {
+          let retArgs = cmd.args.map((cmdArg, i) => {
+            let arg = args[i] || cmdArg.default_value;
+            if (cmdArg.capture) return arg;
+          });
+          const data = cmd.run(retArgs);
+          handler.send(data);
+        }
+      }, cmd);
+    });
   }
 
-  definitionTemplate(cmd, cb = args => args) {}
-
-  responseTemplate(data) {
-    return this.send(data);
+  failedMessage(cmdArg, failedArg) {
+    return {
+      name: "ERROR",
+      title: `Expected type "${cmdArg.type}" at argument "${cmdArg.id}" not "${failedArg}"`,
+      description: cmdArg.fail_message || `argument "${cmdArg.id}" does not accept \`${failedArg}\`.`,
+      color: 0xdd3344
+    };
   }
 
 }
 
-exports.CommandClient = CommandClient;
+exports.default = CommandClient;

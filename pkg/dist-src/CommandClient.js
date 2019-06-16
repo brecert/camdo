@@ -1,29 +1,36 @@
-export class CommandClient {
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+export default class CommandClient {
   constructor() {
-    this.commands = {};
-    this.types = {
-      any: {
-        id: "any",
-        display: "anything",
-        validate: val => true
-      }
-    };
+    _defineProperty(this, "commands", new Map());
+
+    _defineProperty(this, "types", new Map());
+
+    _defineProperty(this, "handlers", new Map());
+
+    this.types.set('any', {
+      id: 'any',
+      display: 'anything',
+      validate: val => true
+    });
   }
 
   defineType(opts) {
     const defaults = {
-      display: undefined,
+      id: opts.id,
+      display: opts.id,
       validate: val => true
     };
-    this.types[opts.id] = { ...defaults,
+    this.types.set(opts.id, { ...defaults,
       ...opts
-    };
+    });
   }
 
   defineArg(arg) {
     const defaults = {
+      id: arg.id,
       name: arg.id,
-      desc: arg.id,
+      description: arg.id,
       type: "any",
       capture: false,
       required: true
@@ -33,62 +40,57 @@ export class CommandClient {
     };
   }
 
-  async defineCommand(cmd) {
-    const defaults = {
-      examples: ['none'],
-      name: cmd.id,
-      desc: cmd.id
+  defineCommand(cmd) {
+    const defaults = { ...cmd,
+      name: cmd.name || cmd.id,
+      description: cmd.description || cmd.name || cmd.id,
+      args: (cmd.args || []).map(this.defineArg)
     };
-    cmd = { ...defaults,
-      ...cmd
-    };
-    this.commands[cmd.id] = cmd; // define_template
-    // setSendTemplate(args)
+    this.commands.set(defaults.id, defaults);
+  }
 
-    this.definitionTemplate(cmd, async params => {
-      let input_args = params;
-      let validated = cmd.args.every((arg, i) => {
-        arg = this.defineArg(arg);
-        let input_arg = input_args[arg.id] || arg.default_value;
+  validateArgs(args, cmd, handler) {
+    return cmd.args.every((cmdArg, i) => {
+      let arg = args[i] || cmdArg.default_value;
 
-        if (arg.capture) {
-          input_arg = input_args.slice(i);
-        }
-
-        input_args[arg.id] = input_arg;
-        let v = this.types[arg.type].validate(input_arg);
-
-        if (!v) {
-          this.failedMessage(arg, input_arg);
-        }
-
-        return v;
-      });
-
-      if (validated) {
-        const data = await cmd.run(input_args);
-        return this.responseTemplate(data);
+      if (!this.types.has(cmdArg.type)) {
+        throw `${cmdArg.type} on ${cmdArg.id} is not currently registered`;
       }
+
+      let validated = this.types.get(cmdArg.type).validate(arg);
+
+      if (!validated && cmdArg.required) {
+        handler.send(this.failedMessage(cmdArg, arg));
+      }
+
+      return validated;
     });
   }
 
-  failedMessage(arg, failed_arg) {
-    this.send({
+  addHandler(params) {
+    this.handlers.set(params.id, params);
+    let handler = this.handlers.get(params.id);
+    this.commands.forEach(cmd => {
+      handler.event((args, ...passedData) => {
+        if (this.validateArgs(args, cmd, handler)) {
+          let retArgs = cmd.args.map((cmdArg, i) => {
+            let arg = args[i] || cmdArg.default_value;
+            if (cmdArg.capture) return arg;
+          });
+          const data = cmd.run(retArgs);
+          handler.send(data);
+        }
+      }, cmd);
+    });
+  }
+
+  failedMessage(cmdArg, failedArg) {
+    return {
       name: "ERROR",
-      title: `Expected type "${arg.type}" at argument "${arg.id}" not "${failed_arg}"`,
-      description: arg.fail_message || `Please use the help command to see what "${arg.id}" accepts.`,
+      title: `Expected type "${cmdArg.type}" at argument "${cmdArg.id}" not "${failedArg}"`,
+      description: cmdArg.fail_message || `argument "${cmdArg.id}" does not accept \`${failedArg}\`.`,
       color: 0xdd3344
-    });
-  }
-
-  send(data) {
-    console.log(data);
-  }
-
-  definitionTemplate(cmd, cb = args => args) {}
-
-  responseTemplate(data) {
-    return this.send(data);
+    };
   }
 
 }

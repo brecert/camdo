@@ -3,22 +3,29 @@
   "description": "Knockoff general use commando",
   "version": "0.1.0",
   "license": "MIT",
-  "esnext": "dist-src/index.js",
-  "main": "dist-node/index.js",
-  "pika": true,
-  "sideEffects": false,
   "files": [
     "dist-*/",
-    "assets/",
     "bin/"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Brecert/camdo.git"
-  },
+  "pika": true,
+  "sideEffects": false,
+  "repository": "https://github.com/Brecert/camdo.git",
   "dependencies": {},
   "devDependencies": {
-    "@pika/plugin-build-node": "^0.3.9",
-    "@pika/plugin-standard-pkg": "^0.3.9"
-  }
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@pika/pack": "^0.4.0",
+    "@pika/plugin-build-node": "^0.4.0",
+    "@pika/plugin-build-types": "^0.4.0",
+    "@pika/plugin-standard-pkg": "^0.4.0",
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.7",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "sylvent": "^0.4.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.2"
+  },
+  "esnext": "dist-src/index.js",
+  "main": "dist-node/index.js",
+  "types": "dist-types/index.d.ts"
 }
