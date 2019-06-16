@@ -9,14 +9,21 @@
     "pipeline": [
       [
         "@pika/plugin-ts-standard-pkg",
-        { "exclude": ["test/**/*", "examples/**/*"] }
+        {
+          "exclude": [
+            "test/**/*",
+            "examples/**/*"
+          ]
+        }
       ],
-      ["@pika/plugin-build-web"]
+      [
+        "@pika/plugin-build-web"
+      ]
     ]
   },
   "scripts": {
     "build": "pika-pack build",
-    "test": "mocha --require ts-node/register test/**/*.spec.ts",
+    "test": "ts-mocha -p test/tsconfig.json test/**/*.spec.ts",
     "publish": "pika-pack publish",
     "version": "npm run build"
   },
@@ -30,6 +37,7 @@
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
     "sylvent": "^0.4.0",
+    "ts-mocha": "^6.0.0",
     "ts-node": "^8.3.0",
     "typescript": "^3.5.2"
   }
