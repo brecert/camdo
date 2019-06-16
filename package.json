@@ -8,28 +8,23 @@
   "@pika/pack": {
     "pipeline": [
       [
-        "@pika/plugin-standard-pkg"
+        "@pika/plugin-ts-standard-pkg",
+        { "exclude": ["test/**/*", "examples/**/*"] }
       ],
-      [
-        "@pika/plugin-build-node"
-      ],
-      [
-        "@pika/plugin-build-types"
-      ]
+      ["@pika/plugin-build-web"]
     ]
   },
   "scripts": {
-    "build": "pack build",
+    "build": "pika-pack build",
     "test": "mocha --require ts-node/register test/**/*.spec.ts",
-    "publish": "yarn test && yarn build && pack publish",
+    "publish": "pika-pack publish",
     "version": "npm run build"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.4.4",
     "@pika/pack": "^0.4.0",
-    "@pika/plugin-build-node": "^0.4.0",
-    "@pika/plugin-build-types": "^0.4.0",
-    "@pika/plugin-standard-pkg": "^0.4.0",
+    "@pika/plugin-build-web": "^0.4.0",
+    "@pika/plugin-ts-standard-pkg": "^0.4.0",
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.7",
     "chai": "^4.2.0",

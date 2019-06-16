@@ -1,2 +1,2 @@
-export * from "./CommandClient.js";
-export { default } from "./CommandClient.js";
+export * from './CommandClient';
+export { default } from './CommandClient';

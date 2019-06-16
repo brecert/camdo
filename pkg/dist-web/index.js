@@ -1,7 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
 function _defineProperty(obj, key, value) {
   if (key in obj) {
     Object.defineProperty(obj, key, {
@@ -36,29 +32,11 @@ function _objectSpread(target) {
   return target;
 }
 
-function _defineProperty$1(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
-}
-
 class CommandClient {
   constructor() {
-    _defineProperty$1(this, "commands", new Map());
-
-    _defineProperty$1(this, "types", new Map());
-
-    _defineProperty$1(this, "handlers", new Map());
-
+    this.commands = new Map();
+    this.types = new Map();
+    this.handlers = new Map();
     this.types.set('any', {
       id: 'any',
       display: 'anything',
@@ -102,7 +80,7 @@ class CommandClient {
       let arg = args[i] || cmdArg.default_value;
 
       if (!this.types.has(cmdArg.type)) {
-        throw `${cmdArg.type} on ${cmdArg.id} is not currently registered`;
+        throw "".concat(cmdArg.type, " on ").concat(cmdArg.id, " is not currently registered");
       }
 
       let validated = this.types.get(cmdArg.type).validate(arg);
@@ -116,11 +94,13 @@ class CommandClient {
   }
 
   addHandler(params) {
+    var _this = this;
+
     this.handlers.set(params.id, params);
     let handler = this.handlers.get(params.id);
     this.commands.forEach(cmd => {
-      handler.event((args, ...passedData) => {
-        if (this.validateArgs(args, cmd, handler)) {
+      handler.event(function (args) {
+        if (_this.validateArgs(args, cmd, handler)) {
           let retArgs = cmd.args.map((cmdArg, i) => {
             let arg = args[i] || cmdArg.default_value;
             if (cmdArg.capture) return arg;
@@ -135,12 +115,12 @@ class CommandClient {
   failedMessage(cmdArg, failedArg) {
     return {
       name: "ERROR",
-      title: `Expected type "${cmdArg.type}" at argument "${cmdArg.id}" not "${failedArg}"`,
-      description: cmdArg.fail_message || `argument "${cmdArg.id}" does not accept \`${failedArg}\`.`,
+      title: "Expected type \"".concat(cmdArg.type, "\" at argument \"").concat(cmdArg.id, "\" not \"").concat(failedArg, "\""),
+      description: cmdArg.fail_message || "argument \"".concat(cmdArg.id, "\" does not accept `").concat(failedArg, "`."),
       color: 0xdd3344
     };
   }
 
 }
 
-exports.default = CommandClient;
+export default CommandClient;
