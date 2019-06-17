@@ -97,18 +97,24 @@ class CommandClient {
     });
   }
 
-  addHandler(params) {
+  async addHandler(params) {
     this.handlers.set(params.id, params);
     let handler = this.handlers.get(params.id);
     this.commands.forEach(cmd => {
-      handler.event((args, ...passedData) => {
-        if (this.validateArgs(args, cmd, handler)) {
-          let retArgs = cmd.args.map((cmdArg, i) => {
-            let arg = args[i] || cmdArg.default_value;
-            if (cmdArg.capture) return arg;
-          });
-          const data = cmd.run(retArgs);
-          handler.send(data);
+      handler.event(async (args, ...passedData) => {
+        try {
+          let validated = this.validateArgs(args, cmd, handler);
+
+          if (validated) {
+            let retArgs = cmd.args.map((cmdArg, i) => {
+              let arg = args[i] || cmdArg.default_value;
+              if (cmdArg.capture) return arg;
+            });
+            const data = await cmd.run(retArgs);
+            handler.send(data, ...passedData);
+          }
+        } catch (err) {
+          console.error(err);
         }
       }, cmd);
     });
