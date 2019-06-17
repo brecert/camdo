@@ -4,7 +4,7 @@ export interface ICamdoFormat {
     description?: string;
     image?: string;
     color?: number;
-    format?: "default" | "large_image";
+    format?: "default" | "large_image" | string;
 }
 export interface ICamdoCommandParams {
     id: string;
@@ -55,6 +55,13 @@ export interface ICamdoTypeParams {
     display?: string;
     validate?: (arg: string) => boolean;
 }
+export interface IValidateResult {
+    validated: boolean;
+    data: {
+        cmdArg: ICamdoArgument;
+        failedArg: string;
+    };
+}
 export default class CommandClient {
     commands: Map<string, ICamdoCommand>;
     types: Map<string, ICamdoType>;
@@ -63,7 +70,7 @@ export default class CommandClient {
     defineType(opts: ICamdoTypeParams): void;
     defineArg(arg: ICamdoArgumentParams): ICamdoArgument;
     defineCommand(cmd: ICamdoCommandParams): void;
-    validateArgs(args: string[], cmd: ICamdoCommand, handler: ICamdoHandler): boolean;
+    validateArgs(args: string[], cmd: ICamdoCommand, handler: ICamdoHandler): IValidateResult;
     addHandler(params: ICamdoHandler): Promise<void>;
     failedMessage(cmdArg: ICamdoArgument, failedArg: string): {
         name: string;

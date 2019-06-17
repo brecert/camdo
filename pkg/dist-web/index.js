@@ -112,21 +112,27 @@ class CommandClient {
   }
 
   validateArgs(args, cmd, handler) {
-    return cmd.args.every((cmdArg, i) => {
-      let arg = args[i] || cmdArg.default_value;
+    let data = {};
+    return {
+      validated: cmd.args.every((cmdArg, i) => {
+        let arg = args[i] || cmdArg.default_value;
 
-      if (!this.types.has(cmdArg.type)) {
-        throw "".concat(cmdArg.type, " on ").concat(cmdArg.id, " is not currently registered");
-      }
+        if (!this.types.has(cmdArg.type)) {
+          throw "".concat(cmdArg.type, " on ").concat(cmdArg.id, " is not currently registered");
+        }
 
-      let validated = this.types.get(cmdArg.type).validate(arg);
+        let validated = this.types.get(cmdArg.type).validate(arg); // if(!validated && cmdArg.required) {
+        //   handler.send(this.failedMessage(cmdArg, arg))
+        // }
 
-      if (!validated && cmdArg.required) {
-        handler.send(this.failedMessage(cmdArg, arg));
-      }
-
-      return validated;
-    });
+        data = {
+          cmdArg,
+          failedArg: arg
+        };
+        return validated;
+      }),
+      data
+    };
   }
 
   addHandler(params) {
@@ -145,18 +151,19 @@ class CommandClient {
             try {
               let validated = _this.validateArgs(args, cmd, handler);
 
-              if (validated) {
+              for (var _len = arguments.length, passedData = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+                passedData[_key - 1] = arguments[_key];
+              }
+
+              if (validated.validated) {
                 let retArgs = cmd.args.map((cmdArg, i) => {
                   let arg = args[i] || cmdArg.default_value;
                   if (cmdArg.capture) return arg;
                 });
                 const data = yield cmd.run(retArgs);
-
-                for (var _len = arguments.length, passedData = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-                  passedData[_key - 1] = arguments[_key];
-                }
-
                 handler.send(data, ...passedData);
+              } else {
+                handler.send(_this.failedMessage(validated.data.cmdArg, validated.data.failedArg), ...passedData);
               }
             } catch (err) {
               console.error(err);
