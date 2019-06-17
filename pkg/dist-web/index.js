@@ -1,3 +1,39 @@
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
+}
+
 function _defineProperty(obj, key, value) {
   if (key in obj) {
     Object.defineProperty(obj, key, {
@@ -96,20 +132,43 @@ class CommandClient {
   addHandler(params) {
     var _this = this;
 
-    this.handlers.set(params.id, params);
-    let handler = this.handlers.get(params.id);
-    this.commands.forEach(cmd => {
-      handler.event(function (args) {
-        if (_this.validateArgs(args, cmd, handler)) {
-          let retArgs = cmd.args.map((cmdArg, i) => {
-            let arg = args[i] || cmdArg.default_value;
-            if (cmdArg.capture) return arg;
+    return _asyncToGenerator(function* () {
+      _this.handlers.set(params.id, params);
+
+      let handler = _this.handlers.get(params.id);
+
+      _this.commands.forEach(cmd => {
+        handler.event(
+        /*#__PURE__*/
+        function () {
+          var _ref = _asyncToGenerator(function* (args) {
+            try {
+              let validated = _this.validateArgs(args, cmd, handler);
+
+              if (validated) {
+                let retArgs = cmd.args.map((cmdArg, i) => {
+                  let arg = args[i] || cmdArg.default_value;
+                  if (cmdArg.capture) return arg;
+                });
+                const data = yield cmd.run(retArgs);
+
+                for (var _len = arguments.length, passedData = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+                  passedData[_key - 1] = arguments[_key];
+                }
+
+                handler.send(data, ...passedData);
+              }
+            } catch (err) {
+              console.error(err);
+            }
           });
-          const data = cmd.run(retArgs);
-          handler.send(data);
-        }
-      }, cmd);
-    });
+
+          return function (_x) {
+            return _ref.apply(this, arguments);
+          };
+        }(), cmd);
+      });
+    })();
   }
 
   failedMessage(cmdArg, failedArg) {

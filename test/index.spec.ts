@@ -4,6 +4,11 @@ import { expect } from 'chai'
 
 import Sylvent from 'sylvent'
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 describe('CommandClient', function() {
 	let client = new CommandClient()
 
@@ -28,32 +33,57 @@ describe('CommandClient', function() {
 	})
 
 	describe('#defineCommand', function() {
-		client.defineCommand({
-		  id: "echo",
-		  description: "Echo what you say!",
-		  args: [{
-		    id: "sentence",
-		    type: 'small_size',
-		    description: "The sentence to echo",
-		    capture: true,
-		    required: true
-		  }],
-		  run(sentence) {
-		    return {
-		      title: 'echo',
-		      description: sentence.join(' '),
-		      color: 0x555555
-		    }
-		  }
+		it('should define a command', function() {
+			client.defineCommand({
+			  id: "echo",
+			  description: "Echo what you say!",
+			  args: [{
+			    id: "sentence",
+			    type: 'small_size',
+			    description: "The sentence to echo",
+			    capture: true,
+			    required: true
+			  }],
+			  run([sentence]: [string]) {
+			    return {
+			      title: 'echo',
+			      description: sentence,
+			      color: 0x555555
+			    }
+			  }
+			})
+
+			expect(client.commands.has('echo')).to.be.true
 		})
 
-		it('should be defined', function() {
-			expect(client.commands.has('echo')).to.be.true
+		it('should define a async command', function() {
+			client.defineCommand({
+			  id: "async-echo",
+			  description: "Echo what you say... Asynchronously!",
+			  args: [{
+			    id: "sentence",
+			    type: 'small_size',
+			    description: "The sentence to echo",
+			    capture: true,
+			    required: true
+			  }],
+			  async run([sentence]: [string]) {
+
+			  	await sleep(10)
+
+			    return {
+			      title: 'echo',
+			      description: sentence,
+			      color: 0x555555
+			    }
+			  }
+			})
+
+			expect(client.commands.has('async-echo')).to.be.true
 		})
 	})
 
 	var events = new Sylvent
-	var responses: ICamdoFormat[] = []
 
 	describe('#addHandler', function() {
 		it('should add a handler', function() {
@@ -68,21 +98,41 @@ describe('CommandClient', function() {
 					})
 				},
 				send: (data) => {
-					responses.push(data)
+					events.emit('response', data)
 				}
 			})
 		})
 	})
 
 	describe('complete', function() {
-		it('should respond correctly', function() {
+		it('should respond correctly', function(done) {
+			events.on('response', (res: any) => {
+				expect(res.description).to.eq('hi!')
+				done()
+				events.removeListener('response')
+			})
+
 			events.emit('message', 'echo hi!')
-			expect(responses.shift()!.description).to.eq('hi!')
 		})
 
-		it('should validate correctly', function() {
+		it('should validate correctly', function(done) {
+			events.on('response', (res: any) => {
+				expect(res.description).to.eq('argument "sentence" does not accept `too_long!`.')
+				done()
+				events.removeListener('response')
+			})
+
 			events.emit('message', 'echo too_long!')
-			expect(responses.shift()!.description).to.eq('argument "sentence" does not accept `too_long!`.')
+		})
+
+		it('should respond correctly asyncronously', function(done) {
+			events.on('response', (res: any) => {
+				expect(res.description).to.eq('tiny')	
+				done()
+				events.removeListener('response')
+			})
+
+			events.emit('message', 'async-echo tiny')
 		})
 	})
 })

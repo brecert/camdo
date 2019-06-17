@@ -13,7 +13,7 @@ export interface ICamdoCommandParams {
   description?: string
   args: ICamdoArgumentParams[]
 
-  run(args: any[]): ICamdoFormat
+  run(args: any): ICamdoFormat | Promise<ICamdoFormat>
 }
 
 export interface ICamdoCommand {
@@ -22,7 +22,7 @@ export interface ICamdoCommand {
   description: string
   args: ICamdoArgument[]
 
-  run(args: any[]): ICamdoFormat
+  run(args: any): ICamdoFormat | Promise<ICamdoFormat>
 }
 
 export interface ICamdoArgumentParams {
@@ -130,20 +130,27 @@ export default class CommandClient {
   }
 
 
-  addHandler(params: ICamdoHandler) {
+  async addHandler(params: ICamdoHandler) {
     this.handlers.set(params.id, params)
     let handler = this.handlers.get(params.id)!
 
-    this.commands.forEach(cmd => {
-      handler.event((args, ...passedData) => {
-        if (this.validateArgs(args, cmd, handler)) {
-          let retArgs = cmd.args.map((cmdArg, i) => { 
-            let arg = args[i] || cmdArg.default_value
-            if (cmdArg.capture) return arg
-          })
+    this.commands.forEach((cmd) => {
+      handler.event(async (args, ...passedData) => {
+        
+        try {
+          let validated = this.validateArgs(args, cmd, handler)
 
-          const data = cmd.run(retArgs)
-          handler.send(data, ...passedData)
+          if (validated) {
+            let retArgs = cmd.args.map((cmdArg, i) => { 
+              let arg = args[i] || cmdArg.default_value
+              if (cmdArg.capture) return arg
+            })
+
+            const data = await cmd.run(retArgs)
+            handler.send(data, ...passedData)
+          }
+        } catch(err) {
+          console.error(err)
         }
       }, cmd)
     })

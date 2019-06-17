@@ -11,14 +11,14 @@ export interface ICamdoCommandParams {
     name?: string;
     description?: string;
     args: ICamdoArgumentParams[];
-    run(args: any[]): ICamdoFormat;
+    run(args: any): ICamdoFormat | Promise<ICamdoFormat>;
 }
 export interface ICamdoCommand {
     id: string;
     name: string;
     description: string;
     args: ICamdoArgument[];
-    run(args: any[]): ICamdoFormat;
+    run(args: any): ICamdoFormat | Promise<ICamdoFormat>;
 }
 export interface ICamdoArgumentParams {
     id: string;
@@ -64,7 +64,7 @@ export default class CommandClient {
     defineArg(arg: ICamdoArgumentParams): ICamdoArgument;
     defineCommand(cmd: ICamdoCommandParams): void;
     validateArgs(args: string[], cmd: ICamdoCommand, handler: ICamdoHandler): boolean;
-    addHandler(params: ICamdoHandler): void;
+    addHandler(params: ICamdoHandler): Promise<void>;
     failedMessage(cmdArg: ICamdoArgument, failedArg: string): {
         name: string;
         title: string;
