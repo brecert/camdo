@@ -4,7 +4,7 @@ export interface ICamdoFormat {
   description?: string
   image?: string
   color?: number
-  format?: "default" | "large_image"
+  format?: "default" | "large_image" | string
 }
 
 export interface ICamdoCommandParams {
@@ -66,6 +66,14 @@ export interface ICamdoTypeParams {
   validate?: (arg: string) => boolean 
 }
 
+export interface IValidateResult {
+  validated: boolean
+  data: {
+    cmdArg: ICamdoArgument,
+    failedArg: string
+  }
+}
+
 export default class CommandClient {
   commands: Map<string, ICamdoCommand> = new Map
   types: Map<string, ICamdoType> = new Map
@@ -112,21 +120,28 @@ export default class CommandClient {
     this.commands.set(defaults.id, defaults)
   }
 
-  validateArgs(args: string[], cmd: ICamdoCommand, handler: ICamdoHandler): boolean {
-    return cmd.args.every((cmdArg, i) => {
-      let arg = args[i] || cmdArg.default_value
+  validateArgs(args: string[], cmd: ICamdoCommand, handler: ICamdoHandler): IValidateResult {
+    let data: any = {}
+    return {
+      validated: cmd.args.every((cmdArg, i) => {
+        let arg = args[i] || cmdArg.default_value
 
-      if(!this.types.has(cmdArg.type)) {
-        throw `${cmdArg.type} on ${cmdArg.id} is not currently registered`
-      }
+        if(!this.types.has(cmdArg.type)) {
+          throw `${cmdArg.type} on ${cmdArg.id} is not currently registered`
+        }
 
-      let validated = this.types.get(cmdArg.type)!.validate(arg)
-      if(!validated && cmdArg.required) {
-        handler.send(this.failedMessage(cmdArg, arg))
-      }
+        let validated = this.types.get(cmdArg.type)!.validate(arg)
 
-      return validated
-    })
+        // if(!validated && cmdArg.required) {
+        //   handler.send(this.failedMessage(cmdArg, arg))
+        // }
+
+        data = { cmdArg, failedArg: arg }
+
+        return validated
+      }),
+      data
+    }
   }
 
 
@@ -140,7 +155,7 @@ export default class CommandClient {
         try {
           let validated = this.validateArgs(args, cmd, handler)
 
-          if (validated) {
+          if (validated.validated) {
             let retArgs = cmd.args.map((cmdArg, i) => { 
               let arg = args[i] || cmdArg.default_value
               if (cmdArg.capture) return arg
@@ -148,6 +163,8 @@ export default class CommandClient {
 
             const data = await cmd.run(retArgs)
             handler.send(data, ...passedData)
+          } else {
+            handler.send(this.failedMessage(validated.data.cmdArg, validated.data.failedArg), ...passedData)
           }
         } catch(err) {
           console.error(err)
