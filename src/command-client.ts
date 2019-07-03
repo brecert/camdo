@@ -103,7 +103,7 @@ export default class CommandClient {
       name: arg.id,
       description: arg.id,
       type: "any",
-      capture: false,
+      capture: true,
       required: true
     }
 
@@ -157,7 +157,7 @@ export default class CommandClient {
           if (validated.validated) {
             let retArgs = cmd.args
               .filter(cmdArg => cmdArg.capture)
-              .map((cmdArg, i) => { 
+              .map((cmdArg, i) => {
                 let arg = args[i] || cmdArg.default_value
                 return arg
               })
