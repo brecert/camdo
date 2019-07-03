@@ -1,2 +1,2 @@
-export * from './CommandClient'
-export { default } from './CommandClient'
+export * from './command-client'
+export { default } from './command-client'

@@ -144,7 +144,6 @@ export default class CommandClient {
     }
   }
 
-
   async addHandler(params: ICamdoHandler) {
     this.handlers.set(params.id, params)
     let handler = this.handlers.get(params.id)!
@@ -160,7 +159,7 @@ export default class CommandClient {
               let arg = args[i] || cmdArg.default_value
               if (cmdArg.capture) return arg
             })
-
+            
             const data = await cmd.run(retArgs)
             handler.send(data, ...passedData)
           } else {
