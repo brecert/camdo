@@ -155,10 +155,12 @@ export default class CommandClient {
           let validated = this.validateArgs(args, cmd, handler)
 
           if (validated.validated) {
-            let retArgs = cmd.args.filter(cmdArg => cmdArg.capture).map((cmdArg, i) => { 
-              let arg = args[i] || cmdArg.default_value
-              return arg
-            })
+            let retArgs = cmd.args
+              .filter(cmdArg => cmdArg.capture)
+              .map((cmdArg, i) => { 
+                let arg = args[i] || cmdArg.default_value
+                return arg
+              })
 
             const data = await cmd.run(retArgs)
             handler.send(data, ...passedData)
