@@ -83,6 +83,22 @@ describe('CommandClient', function() {
 		})
 	})
 
+	it('should define a command with a default value of "default value!"', function() {
+		client.defineCommand({
+			id: "default-value",
+			args: [{
+				id: "arg-1",
+				default_value: "default value!"
+			}],
+			run([ arg1 ]: [string]) {
+				return {
+					title: 'default-value',
+					description: arg1
+				}
+			}
+		})
+	})
+
 	var events = new Sylvent
 
 	describe('#addHandler', function() {
@@ -133,6 +149,16 @@ describe('CommandClient', function() {
 			})
 
 			events.emit('message', 'async-echo tiny')
+		})
+
+		it('should respond with the default vaue when no arg is provided', function(done) {
+			events.on('response', (res: any) => {
+				expect(res.description).to.eq('default value!')
+				done()
+				events.removeListener('response')
+			})
+
+			events.emit('message', 'default-value')
 		})
 	})
 })
