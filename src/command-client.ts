@@ -158,8 +158,8 @@ export default class CommandClient {
             let retArgs = cmd.args.map((cmdArg, i) => { 
               let arg = args[i] || cmdArg.default_value
               if (cmdArg.capture) return arg
-            })
-            
+            }).filter(v => v !== undefined)
+
             const data = await cmd.run(retArgs)
             handler.send(data, ...passedData)
           } else {
