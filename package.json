@@ -45,5 +45,8 @@
     "ts-node": "^8.3.0",
     "typescript": "^3.5.2"
   },
-  "dependencies": {}
+  "source": "pkg/dist-src/index.js",
+  "types": "pkg/dist-types/index.d.ts",
+  "main": "pkg/dist-node/index.js",
+  "module": "pkg/dist-web/index.js"
 }
