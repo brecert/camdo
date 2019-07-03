@@ -95,7 +95,7 @@ class CommandClient {
       name: arg.id,
       description: arg.id,
       type: "any",
-      capture: false,
+      capture: true,
       required: true
     };
     return _objectSpread({}, defaults, arg);
@@ -156,9 +156,9 @@ class CommandClient {
               }
 
               if (validated.validated) {
-                let retArgs = cmd.args.map((cmdArg, i) => {
+                let retArgs = cmd.args.filter(cmdArg => cmdArg.capture).map((cmdArg, i) => {
                   let arg = args[i] || cmdArg.default_value;
-                  if (cmdArg.capture) return arg;
+                  return arg;
                 });
                 const data = yield cmd.run(retArgs);
                 handler.send(data, ...passedData);
