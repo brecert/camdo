@@ -81,23 +81,45 @@ describe('CommandClient', function() {
 
 			expect(client.commands.has('async-echo')).to.be.true
 		})
-	})
-
-	it('should define a command with a default value of "default value!"', function() {
-		client.defineCommand({
-			id: "default-value",
-			args: [{
-				id: "arg-1",
-				default_value: "default value!"
-			}],
-			run([ arg1 ]: [string]) {
-				return {
-					title: 'default-value',
-					description: arg1
+	
+		it('should define a command with a default value of "default value!"', function() {
+			client.defineCommand({
+				id: "default-value",
+				args: [{
+					id: "arg-1",
+					default_value: "default value!"
+				}],
+				run([ arg1 ]: [string]) {
+					return {
+						title: 'default-value',
+						description: arg1
+					}
 				}
-			}
+			})
+		})
+
+		it('should define a command with an optional argument', function() {
+			client.defineCommand({
+				id: "optional-argument",
+				args: [
+					{
+						id: "required-arg"
+					},
+					{
+						id: "optional-arg",
+						required: false
+					}
+				],
+				run([ requiredArg, optionalArg ]: [string, string?]) {
+					return {
+						title: 'optional-argument',
+						description: optionalArg
+					}
+				}
+			})
 		})
 	})
+
 
 	var events = new Sylvent
 
@@ -159,6 +181,26 @@ describe('CommandClient', function() {
 			})
 
 			events.emit('message', 'default-value')
+		})
+
+		it('should ignore optional arguments', function(done) {
+			events.on('response', (res: any) => {
+				expect(res.description).to.be.undefined
+				done()
+				events.removeListener('response')
+			})
+
+			events.emit('message', 'optional-argument required')
+		})
+
+		it('should still accept optional arguments', function(done) {
+			events.on('response', (res: any) => {
+				expect(res.description).to.eq('optional')
+				done()
+				events.removeListener('response')
+			})
+
+			events.emit('message', 'optional-argument required optional')
 		})
 	})
 })
