@@ -137,7 +137,7 @@ export default class CommandClient {
           return true
         }
 
-        let validated = this.types.get(cmdArg.type).validate(arg)
+        let validated = this.types.get(cmdArg.type)!.validate(arg)
 
         data = { cmdArg, failedArg: arg }
 
