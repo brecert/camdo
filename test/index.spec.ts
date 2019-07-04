@@ -118,6 +118,28 @@ describe('CommandClient', function() {
 				}
 			})
 		})
+
+		it('should define a command with an optional argument and custom type', function() {
+			client.defineCommand({
+				id: "optional-typed-argument",
+				args: [
+					{
+						id: "required-arg"
+					},
+					{
+						id: "optional-typed-arg",
+						type: "small_size",
+						required: false
+					}
+				],
+				run([ requiredArg, optionalTypedArg ]: [string, string?]) {
+					return {
+						title: "optional-typed-argument",
+						description: optionalTypedArg
+					}
+				}
+			})
+		})
 	})
 
 
@@ -201,6 +223,26 @@ describe('CommandClient', function() {
 			})
 
 			events.emit('message', 'optional-argument required optional')
+		})
+
+		it('should ignore typed optional arguments', function(done) {
+			events.on('response', (res: any) => {
+				expect(res.description).to.be.undefined
+				done()
+				events.removeListener('response')
+			})
+
+			events.emit('message', 'optional-typed-argument required')
+		})
+
+		it('should still accept typed optional arguments', function(done) {
+			events.on('response', (res: any) => {
+				expect(res.description).to.eq('abc')
+				done()
+				events.removeListener('response')
+			})
+
+			events.emit('message', 'optional-typed-argument required abc')
 		})
 	})
 })
