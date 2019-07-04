@@ -1,3 +1,5 @@
+// todo(brecert): document and commentate code
+
 export interface ICamdoFormat {
   name?: string
   title?: string
@@ -136,11 +138,6 @@ export default class CommandClient {
         }
 
         let validated = this.types.get(cmdArg.type).validate(arg)
-        
-
-        // if(!validated && cmdArg.required) {
-        //   handler.send(this.failedMessage(cmdArg, arg))
-        // }
 
         data = { cmdArg, failedArg: arg }
 
