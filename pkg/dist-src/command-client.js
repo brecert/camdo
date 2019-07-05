@@ -1,3 +1,4 @@
+// todo(brecert): document and commentate code
 export default class CommandClient {
     constructor() {
         this.commands = new Map;
@@ -45,10 +46,11 @@ export default class CommandClient {
                 if (!this.types.has(cmdArg.type)) {
                     throw `${cmdArg.type} on ${cmdArg.id} is not currently registered`;
                 }
+                // if not required and undefined then skip validation
+                if (!cmdArg.required && arg === undefined) {
+                    return true;
+                }
                 let validated = this.types.get(cmdArg.type).validate(arg);
-                // if(!validated && cmdArg.required) {
-                //   handler.send(this.failedMessage(cmdArg, arg))
-                // }
                 data = { cmdArg, failedArg: arg };
                 return validated;
             }),
