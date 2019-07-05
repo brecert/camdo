@@ -36,6 +36,7 @@ function _objectSpread(target) {
   return target;
 }
 
+// todo(brecert): document and commentate code
 class CommandClient {
   constructor() {
     this.commands = new Map();
