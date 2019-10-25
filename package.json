@@ -25,9 +25,9 @@
     ]
   },
   "scripts": {
-    "build": "pika-pack build",
+    "build": "pika build",
     "test": "ts-mocha -p test/tsconfig.json test/**/*.spec.ts",
-    "publish": "pika-pack publish",
+    "publish": "pika publish",
     "version": "npm run build"
   },
   "devDependencies": {
